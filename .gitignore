@@ -1,0 +1,17 @@
+# Local n8n server application footprints
+.n8n/
+n8n-local-backups/
+backups/
+*.env
+*.local
+
+# System environment caches
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Development IDE workspaces
+.vscode/
+.idea/
+*.swp
+*.log
