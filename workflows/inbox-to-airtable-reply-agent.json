@@ -1,0 +1,316 @@
+{
+  "name": "Inbox-to-Airtable Email Assistant(Email Reply Agent)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 2
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -176,
+        0
+      ],
+      "id": "7f3fe066-6c38-47d9-9175-3a4118f054ff",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "filters": {
+          "labelIds": [
+            "UNREAD"
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        48,
+        0
+      ],
+      "id": "25cfa7d7-26bc-4fc4-8d13-07734e735e0f",
+      "name": "Gmail All Mails",
+      "webhookId": "a0307609-dcb9-4171-9f2c-6dd21513ba93",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "dHOaJXZITmfIxBX0",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "messageId": "={{ $json.threadId }}",
+        "simple": false,
+        "options": {
+          "downloadAttachments": true
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        272,
+        0
+      ],
+      "id": "bda82fcc-fb9d-4920-89e6-6fdc8bbb9569",
+      "name": "Gmail All Details",
+      "webhookId": "a3985b30-fcc8-4e5a-b3bd-97464afd2d43",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "dHOaJXZITmfIxBX0",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=I want you to draft an email reply in a very professional way. \nSomethings to know I am rightnow not open for collaborations but I am open for meetings and project discussion as well.\n\nI want you to reply on this email : {{ $json.text }}\nI want you to draft the reply and give me only the body. I don't want you to give me any subject line or anyhting, just give me the body text.\n\nThe sender name is {{ $json.from.value[0].name }} and \nMy name is Vexp Learner.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        496,
+        0
+      ],
+      "id": "03e4e192-b75f-4312-8ac0-bec6d66f04a3",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash-lite",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        576,
+        224
+      ],
+      "id": "f6ec528e-8a3b-4d83-a1f9-46377f2906c4",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "Hy4vqDgtVfT3IinU",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "actual Airtable Base ID",
+          "mode": "list",
+          "cachedResultName": "Your base's internal name",
+          "cachedResultUrl": "https://airtable.com/actual Airtable Base ID"
+        },
+        "table": {
+          "__rl": true,
+          "value": "Your specific Table ID",
+          "mode": "list",
+          "cachedResultName": "Table 1",
+          "cachedResultUrl": "https://airtable.com/actual Airtable Base ID/Your specific Table ID"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Sender Name": "={{ $('Gmail All Details').item.json.from.value[0].name }}",
+            "From Email": "={{ $('Gmail All Details').item.json.from.value[0].address }}",
+            "Email Body": "={{ $('Gmail All Details').item.json.text }}",
+            "Body Draft Reply": "={{ $json.output }}",
+            "Thread ID": "={{ $('Gmail All Details').item.json.threadId }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Sender Name",
+              "displayName": "Sender Name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "From Email",
+              "displayName": "From Email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Email Body",
+              "displayName": "Email Body",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Body Draft Reply",
+              "displayName": "Body Draft Reply",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Thread ID",
+              "displayName": "Thread ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        848,
+        0
+      ],
+      "id": "29d0f717-4726-42a1-8c06-b59099bbc8fd",
+      "name": "Create a record",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "c2zA63avDFQHNa19",
+          "name": "Airtable Personal Access Token account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "markAsRead",
+        "messageId": "={{ $('Gmail All Details').item.json.threadId }}"
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1072,
+        0
+      ],
+      "id": "abd4dd99-4e70-4842-9aa0-93392a3c6357",
+      "name": "Mark a message as read",
+      "webhookId": "d4dd6c18-9765-4ea6-9a3f-62de5c08bd71",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "dHOaJXZITmfIxBX0",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Gmail All Mails",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail All Mails": {
+      "main": [
+        [
+          {
+            "node": "Gmail All Details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail All Details": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Create a record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a record": {
+      "main": [
+        [
+          {
+            "node": "Mark a message as read",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "e3d6e349-736e-45a4-8bc0-48600e24bdfe",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ab12ab12ab12ab12ab12ab12ab12ab12ab12ab12ab12ab12ab12ab12ab12"
+  },
+  "id": "5d3zoTuohK12sspx",
+  "tags": []
+}
